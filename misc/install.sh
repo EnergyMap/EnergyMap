@@ -1,7 +1,9 @@
+sudo apt update
+apt install python3-pip
 pip install osmium
 pip install pandas
 pip install geopandas
 pip install osmnx
 pip install numpy
-pip install sklearn
+pip install scikit-learn
 pip install jupyterlab
