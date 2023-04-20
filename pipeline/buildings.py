@@ -31,13 +31,13 @@ class BuildingHandler(osmium.SimpleHandler):
 #Builds a geopandas-dataframe from an osm-file with the help of the osmium-based buildinghandler-class
 #Parameter, string: osm-file location
 def create_geodataframe(file):
-    print("Loading osm-data from file, this will take a while...")
+    print(f'Loading osm-data from file {file}, this will take a while...')
     buildinghandler = BuildingHandler()
     buildinghandler.apply_file(file, locations=True)
 
     #This loop is needed beause of geopandas.GeoDataFrame otherwise using too much RAM at once
     #This loop should work with at least 16GB RAM
-    print("Creating geodataframe from osm-data, this will take a while...")
+    print(f'Creating geodataframe from the data from {file}, this will take a while...')
     i = 200000
     while i-200000 < len(buildinghandler.buildings):
         dfx = pd.DataFrame(buildinghandler.buildings[(i-200000):min([i, len(buildinghandler.buildings)-1])])
@@ -51,6 +51,11 @@ def create_geodataframe(file):
         else:
             geodf = pd.concat([geodf, gdfx])
         i += 200000
+        
+    geodf.loc[geodf['building:levels'].str.contains('[A-Za-z]', na=False)] = None
+    geodf.loc[geodf['building:levels'].str.contains('[;,.-]', na=False)] = None
+    geodf.loc[geodf['building:levels'] == "0"] = None
+    geodf["building:levels"] = geodf["building:levels"].astype("float")
     
     return geodf
 

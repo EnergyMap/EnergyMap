@@ -64,10 +64,11 @@ def get_climate_zones():
 
     polygon_geom10 = make_polygon(lon_point_list10, lat_point_list10)
 
-
+    energy_demand = [52.005, 133.280, 159.993, 159.993, 240.838, 158.663, 230.084, 245.280]
     zones = geopandas.GeoDataFrame(index=['zone3','zone4', 'zone5', 'zone5b', 'zone6', 'zone7', 'zone8', 'zone10'], crs='epsg:4326', 
                                      geometry=[polygon_geom3, polygon_geom4, polygon_geom5, polygon_geom5b,
-                                               polygon_geom6,polygon_geom7, polygon_geom8, polygon_geom10])       
+                                               polygon_geom6,polygon_geom7, polygon_geom8, polygon_geom10])
+    zones['kWh/a'] = energy_demand
 
     return zones
 
