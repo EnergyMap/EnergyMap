@@ -8,16 +8,25 @@ def download_country(country):
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
 
-#Downloads the osm.pbf-files from the geofabrik-mirror into the same folder where its running
-def download_europe():
-    europe = ['albania', 'andorra', 'austria', 'azores', 'belarus', 'belgium', 'bosnia-herzegovina', 'bulgaria', 'croatia', 'cyprus', 
+#List of european countries for loading osm-files
+europe = ['albania', 'andorra', 'austria', 'azores', 'belarus', 'belgium', 'bosnia-herzegovina', 'bulgaria', 'croatia', 'cyprus', 
               'czech-republic', 'denmark', 'estonia', 'faroe-islands', 'finland', 'france', 'georgia', 'germany', 'great-britain',
               'greece', 'guernsey-jersey', 'hungary', 'iceland', 'ireland-and-northern-ireland', 'isle-of-man', 'italy', 'kosovo', 
              'latvia', 'liechtenstein', 'lithuania', 'luxembourg', 'macedonia', 'malta', 'moldova', 'monaco', 'montenegro', 
               'netherlands', 'norway', 'poland', 'portugal', 'romania', 'serbia', 'slovakia', 'slovenia', 'spain', 'sweden', 
              'switzerland', 'turkey', 'ukraine']
+
+#list of countries in Europe that have bigger osm-files than this pipeline can handle (with <=32GB RAM)
+big_countries_in_europe = ['france', 'germany', 'great-britain', 'italy', 'netherlands', 'norway', 'poland', 'spain']
+
+#Downloads the osm.pbf-files from the geofabrik-mirror into the same folder where its running
+#Parameter, list: countries (can be None, then this implementation will use the list for Europe)
+def download_osm_files(countries=None):
+    if countries is None:
+        countries = europe
     for country in europe:
-        download_country(country)
+        print(country)
+        #download_country(country)
 
 #Executes the docker container for osmium to split osm.pbf-files into 9 smaller files
 #Parameter, string: country
@@ -40,10 +49,11 @@ def split_country(country, parameters):
             print(error)
             
 #Splits the osm.pbf-files in Europe that are too big for the pipeline (atleast with <=32GB RAM).
-def split_big_countries():
-    #big_countries = ['france', 'germany', 'great-britain', 'italy', 'netherlands', 'norway', 'poland', 'spain']
-    big_countries = ['france']
-    for country in big_countries:
+#Parameter, list: countries (can be None, then this implementation will use the list for big files for Europe)
+def split_osm_files(countries=None):
+    if countries is None:
+        countries = big_countries_in_europe
+    for country in countries:
         parameters = get_split_parameters(country)
         split_country(country, parameters)
         
@@ -63,7 +73,8 @@ def get_split_parameters(country):
     
 
 def main():
-    split_big_countries()
+    download_osm_files()
+    #split_big_countries()
 
 if __name__ == "__main__":
     main()
