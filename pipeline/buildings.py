@@ -57,6 +57,14 @@ def create_geodataframe(file):
     geodf.loc[geodf['building:levels'] == "0"] = None
     geodf["building:levels"] = geodf["building:levels"].astype("float")
     
+    #some rows will not have any shape, and should be deleted
+    geodf = geodf[~geodf["geometry"].isna()]
+    if '-latest' in file:
+        country = file.split('-latest')
+        if '/' in country:
+            country = country.split('/')
+            country = country[len(country)-1]
+        geodf['country'] = country
     return geodf
 
 def main():
