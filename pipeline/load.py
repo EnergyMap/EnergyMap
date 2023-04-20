@@ -3,8 +3,11 @@ import osmium as o
 
 #Downloads one country file from geofabrik
 #Parameter, string: country
-def download_country(country):
-    bashCommand = f'wget http://download.geofabrik.de/europe/{country}-latest.osm.pbf'
+#NOTE! Only runs if you have wget on your path, and only on Linux/bash
+def download_country(country, destination=None):
+    if destination is None:
+        destination = os.getcwd()
+    bashCommand = f'wget http://download.geofabrik.de/europe/{country}-latest.osm.pbf -P {destination}'
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
 
@@ -28,14 +31,45 @@ def download_osm_files(countries=None):
         print(country)
         #download_country(country)
 
-#Executes the docker container for osmium to split osm.pbf-files into 9 smaller files
+#Uses osmium in a docker container to filter out only building data from osm-files
+#Parameter, boolean: delete_unfiltered (default fault, that is, will not delete after filtering)
+#Parameter, list: files (if none will process all osm.pbf-files in the same folder)
+#Parameter, string: folder (if none will use current working directory)
+def filter_out_buildings(delete_unfiltered=False, files=None, folder=None):
+    if files is None:
+        files = [x for x in os.listdir(folder) if 'osm.pbf' in x and 'filtered' not in x]
+    if folder is None:
+        folder = os.getcwd()
+    for file in files:
+        print(f'Now filtering buildings from file: {file}...')
+        bashCommand = f'docker run -w /wkd -v {folder}:/wkd stefda/osmium-tool '
+        bashCommand += f'osmium tags-filter -o filtered-{file} {file} building'
+        process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
+        if error:
+            print(error)
+    if delete_unfiltered:
+        for file in files:
+            print(f'Deleting unfiltered file: {file}...')
+            bashCommand = f'rm {file}'
+            process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
+            if error:
+                print(error)
+        
+
+#Executes the docker container for osmium to split osm.pbf-files into smaller files
+#parameter, dir: directory where the files are located, if None, assumes current working directory
 #Parameter, string: country
 #Parameter, tuple with six parameters (lon1, lat1, lon2, lat2, width, height)
-def split_country(country, parameters):
+#NOTE! Will not run unless you have docker on your path, only runs on Linux/bash
+def split_country(country, parameters, dir=None):
+    if dir is None:
+        dir = os.getcwd()
     print(parameters)
     lon1, lat1, lon2, lat2, width, height = parameters
-    for i in range(3):
-        for j in range(3):
+    for i in range(4):
+        for j in range(4):
             box_lon1 = lon1+(i*width)
             box_lat1 = lat1+(j*height)
             box_lon2 = lon1+((i+1)*width)
@@ -46,7 +80,7 @@ def split_country(country, parameters):
             bashCommand += f'--bbox={coordinates} -o {country}-{i}{j}-latest.osm.pbf {country}-latest.osm.pbf'
             process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
-            print(error)
+            print(output, error)
             
 #Splits the osm.pbf-files in Europe that are too big for the pipeline (atleast with <=32GB RAM).
 #Parameter, list: countries (can be None, then this implementation will use the list for big files for Europe)
@@ -67,14 +101,16 @@ def get_split_parameters(country):
     lon2 = math.ceil(bbox.top_right.lon.real)
     lat2 = math.ceil(bbox.top_right.lat.real)
     #print(lat2 - lat1)
-    width = math.ceil((lon2-lon1) / 3)
-    height = math.ceil((lat2-lat1) / 3)
+    width = math.ceil((lon2-lon1) / 4)
+    height = math.ceil((lat2-lat1) / 4)
     return (lon1, lat1, lon2, lat2, width, height)
     
 
 def main():
-    download_osm_files()
+    download_country('albania')
+    #download_osm_files()
     #split_big_countries()
+    #filter_out_buildings(False, ['greece-latest.osm.pbf'])
 
 if __name__ == "__main__":
     main()
