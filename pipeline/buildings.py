@@ -2,6 +2,7 @@ import osmium
 import shapely.wkb as wkblib
 import geopandas
 import pandas as pd
+import re
 
 #An osmium-based class that reads the osm-file and appends all buildings to an array 
 class BuildingHandler(osmium.SimpleHandler):
@@ -27,6 +28,20 @@ class BuildingHandler(osmium.SimpleHandler):
 
             self.buildings.append(row)
             self.building_count += 1
+            
+#function during workflow to test logic, default for test
+def extract_country_name(file='filtered-bosnia-herzegovina-latest'):
+    regex = '-[0-3]{2}'
+    country = file.split('-latest')[0]
+    if 'filtered-' in file:
+        country = country.split('tered-')[1]
+    if '/' in country:
+        country = country.split('/')
+        country = country[len(country)-1]
+    if re.search(regex, country):
+        country = re.split(regex, country)[0]
+    return country
+    
 
 #Builds a geopandas-dataframe from an osm-file with the help of the osmium-based buildinghandler-class
 #Parameter, string: osm-file location
@@ -59,19 +74,18 @@ def create_geodataframe(file):
     
     #some rows will not have any shape, and should be deleted
     geodf = geodf[~geodf["geometry"].isna()]
-    if '-latest' in file:
-        country = file.split('-latest')
-        if '/' in country:
-            country = country.split('/')
-            country = country[len(country)-1]
-        geodf['country'] = country
+    
+    #finding the country from the filename and adding to the dataframe
+    geodf['country'] = extract_country_name(file)
+    geodf.reset_index(drop=True, inplace=True)
     return geodf
 
 def main():
-    result = build_geodf('albania-latest.osm.pbf')
-    print(result.head())
-    print(result.shape)
+    #result = build_geodf('albania-latest.osm.pbf')
+    #print(result.head())
+    #print(result.shape)
     #split_big_countries()
+    print(extract_country_name())
 
 if __name__ == "__main__":
     main()

@@ -36,7 +36,8 @@ def predict_levels(with_levels_info, without_levels_info, k_neighbours):
         means.append(int(np.mean(with_levels_info[closest_k[c,:], 3])))
     return means
 
-def predict_levels_with_knn(geodf, k_neighbours):
+def estimate_levels_with_knn(geodf, k_neighbours=3):
+    print(f'Estimating levels for country {geodf.loc[geodf.index[0], "country"]}, this will take a while...')
     crs = geodf.crs
     geodf["geometry"] = geodf["geometry"].to_crs("EPSG:3857") # to meters instead of lat, lon degees
     
@@ -61,8 +62,8 @@ def predict_levels_with_knn(geodf, k_neighbours):
         
     data = np.concatenate(L)
     
-    df = pd.DataFrame({"base_area": data[:,0], "x": data[:,1], "y": data[:,2],
-                       "levels": data[:,3], "predicted": data[:,4]})
+    #df = pd.DataFrame({"base_area": data[:,0], "x": data[:,1], "y": data[:,2],
+    #                   "levels": data[:,3], "predicted": data[:,4]})
     geodf['levels'] = data[:,3]
     geodf['predicted'] = data[:,4]
     geodf["geometry"].to_crs(crs)

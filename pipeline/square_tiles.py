@@ -28,21 +28,25 @@ def create_geodataframe_with_squares(two_d_arr, column_name, minx, miny):
     
 
 def create_square_tiles(geodf):
+    print(f'Creating square-tiles of sum emission levels for {geodf.loc[geodf.index[0], "country"]}, this will take a while...')
     meter_geodf = geodf.to_crs("EPSG:3857")
     minx, miny, maxx, maxy = meter_geodf.total_bounds
     co2sums = create_2d_array(minx, miny, maxx, maxy)
     co2opts = create_2d_array(minx, miny, maxx, maxy)
+    diffs = create_2d_array(minx, miny, maxx, maxy)
     meter_geodf['centroid'] = meter_geodf.geometry.centroid
     #for some reason some centroids are none
     meter_geodf = meter_geodf.dropna(subset=['centroid'])
     #summing up co2 for every row in the dataframe to the correct square tile in the grid
     for index, row in meter_geodf.iterrows():
-        co2sums[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['co2/a']
-        co2opts[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['opt_co2']
+        co2sums[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['co2(t)/a']
+        co2opts[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['opt_co2(t)/a']
+        diffs[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['diff']
         
-    sqdf_co2 = create_geodataframe_with_squares(co2sums, 'co2/a', minx, miny)
-    sqdf_opts = create_geodataframe_with_squares(co2opts, 'opt_co2', minx, miny)
-    return (sqdf_co2, sqdf_opts)
+    sqdf_co2 = create_geodataframe_with_squares(co2sums, 'co2(t)/a', minx, miny)
+    sqdf_opts = create_geodataframe_with_squares(co2opts, 'opt_co2(t)/a', minx, miny)
+    sqdf_diff = create_geodataframe_with_squares(diffs, 'diff', minx, miny)
+    return (sqdf_co2, sqdf_opts, sqdf_diff)
 
 
 def main():

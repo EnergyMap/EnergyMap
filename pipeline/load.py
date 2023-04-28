@@ -27,9 +27,9 @@ big_countries_in_europe = ['france', 'germany', 'great-britain', 'italy', 'nethe
 def download_osm_files(countries=None):
     if countries is None:
         countries = europe
-    for country in europe:
-        print(country)
-        #download_country(country)
+    for country in countries:
+        print("Now downloading: "+ country)
+        download_country(country)
 
 #Uses osmium in a docker container to filter out only building data from osm-files
 #Parameter, boolean: delete_unfiltered (default fault, that is, will not delete after filtering)
@@ -66,7 +66,7 @@ def filter_out_buildings(delete_unfiltered=False, files=None, folder=None):
 def split_country(country, parameters, dir=None):
     if dir is None:
         dir = os.getcwd()
-    print(parameters)
+    #print(parameters)
     lon1, lat1, lon2, lat2, width, height = parameters
     for i in range(4):
         for j in range(4):
@@ -80,16 +80,33 @@ def split_country(country, parameters, dir=None):
             bashCommand += f'--bbox={coordinates} -o {country}-{i}{j}-latest.osm.pbf {country}-latest.osm.pbf'
             process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
-            print(output, error)
+            if error:
+                print(error)
+                
+def delete_unsplit_files(country, dir=None):
+    if dir is None:
+        dir = os.getcwd()
+    
+    
             
 #Splits the osm.pbf-files in Europe that are too big for the pipeline (atleast with <=32GB RAM).
+#NOTE! Here is assumed that the countries are being split from the filtered files, so "filtered" is added to filename
 #Parameter, list: countries (can be None, then this implementation will use the list for big files for Europe)
-def split_osm_files(countries=None):
+def split_osm_files(filtered=True, countries=None, delete_unfiltered=True):
     if countries is None:
         countries = big_countries_in_europe
     for country in countries:
-        parameters = get_split_parameters(country)
-        split_country(country, parameters)
+        if filtered:
+            country = 'filtered-' + country
+        #parameters = get_split_parameters(country)
+        #split_country(country, parameters)
+        if delete_unfiltered:
+            print(f'Deleting unsplit file: {country}...')
+            bashCommand = f'rm {country+"-latest.osm.pbf"}'
+            process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
+            if error:
+                print(error)
         
 #Checks the bounding box coordinates for a osm.pbf-file and returns a tuple with (lon1, lat1, lon2, lat2, width, height),
 #where 'width' and 'height' are suitable specs for the smaller files to be split out of the bigger one.
@@ -107,10 +124,10 @@ def get_split_parameters(country):
     
 
 def main():
-    download_country('albania')
+    #download_country('albania')
     #download_osm_files()
-    #split_big_countries()
-    #filter_out_buildings(False, ['greece-latest.osm.pbf'])
+    #filter_out_buildings(True)
+    split_osm_files()
 
 if __name__ == "__main__":
     main()
