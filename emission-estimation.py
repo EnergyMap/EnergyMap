@@ -1,4 +1,4 @@
-import os
+import os, psutil
 import pandas as pd
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
@@ -52,7 +52,9 @@ def process_file(file):
 def run_pipeline(folder='OSM_data'):
     files = list_files(folder)
     for file in files:
+        print('Using memory before handling file '+str(psutil.virtual_memory().percent))
         process_file(os.path.join(folder,file))
+        print('Using memory after handling file '+str(psutil.virtual_memory().percent))
 
 def insert_in_database(connection, table, gdf):
     print(f'Inserting into db-table "{table}" for {gdf.loc[gdf.index[0], "country"]}, please wait...')
