@@ -1,4 +1,4 @@
-import os, psutil
+import os, psutil, gc
 import pandas as pd
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
@@ -43,11 +43,15 @@ def process_file(file):
     insert_in_database(db_conn, 'squares_opt_co2', sqdf_opts)
     insert_in_database(db_conn, 'squares_diff', sqdf_diff)
     print(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.')
+    f = open("logs.txt", "a")
+    f.write(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.')
+    f.close()
     #probably unnecessary, but since memory has been a problem in this pipeline:
     del gdf
     del sqdf_co2
     del sqdf_opts
     del sqdf_diff
+    gc.collect()
     
 def run_pipeline(folder='OSM_data'):
     files = list_files(folder)
@@ -62,7 +66,7 @@ def insert_in_database(connection, table, gdf):
 
 def main():
     #print(list_files())
-    run_pipeline('pipeline')
+    run_pipeline('data')
 
 if __name__ == "__main__":
     main()

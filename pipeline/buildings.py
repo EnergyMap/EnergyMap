@@ -68,7 +68,7 @@ def create_geodataframe(file):
         i += 200000
         
     geodf.loc[geodf['building:levels'].str.contains('[A-Za-z]', na=False)] = None
-    geodf.loc[geodf['building:levels'].str.contains('[;,.-]', na=False)] = None
+    geodf.loc[geodf['building:levels'].str.contains('[;,.-`]', na=False)] = None
     geodf.loc[geodf['building:levels'] == "0"] = None
     geodf["building:levels"] = geodf["building:levels"].astype("float")
     

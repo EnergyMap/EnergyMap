@@ -9,13 +9,13 @@ def create_2d_array(minx, miny, maxx, maxy):
     two_d_arr = np.zeros((rows+1,cols+1))
     return two_d_arr
 
-def create_geodataframe_with_squares(two_d_arr, column_name, minx, miny):
+def create_geodataframe_with_squares(two_d_arr, column_name, minx, miny, country_name):
     squares = []
     sums = []
     for y in range(0, two_d_arr.shape[0]):
         for x in range(0, two_d_arr.shape[1]):
             co2 = two_d_arr[y,x]
-            if co2 > 0:
+            if co2 != 0:
                 thisx = minx + x*1000
                 thisy = miny + y*1000
                 lat_point_list = [thisx, thisx+1000, thisx+1000, thisx, thisx]
@@ -24,6 +24,7 @@ def create_geodataframe_with_squares(two_d_arr, column_name, minx, miny):
                 sums.append(co2)
     sqdf = geopandas.GeoDataFrame(crs="EPSG:3857", geometry=squares)
     sqdf[column_name] = sums
+    sqdf['country'] = country_name
     return sqdf.to_crs("EPSG:4326")
     
 
@@ -42,10 +43,11 @@ def create_square_tiles(geodf):
         co2sums[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['co2(t)/a']
         co2opts[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['opt_co2(t)/a']
         diffs[int(np.floor((row.centroid.y-miny)/1000))][int(np.floor((row.centroid.x-minx)/1000))] += row['diff']
-        
-    sqdf_co2 = create_geodataframe_with_squares(co2sums, 'co2(t)/a', minx, miny)
-    sqdf_opts = create_geodataframe_with_squares(co2opts, 'opt_co2(t)/a', minx, miny)
-    sqdf_diff = create_geodataframe_with_squares(diffs, 'diff', minx, miny)
+    
+    country_name = geodf.loc[geodf.index[0], "country"]
+    sqdf_co2 = create_geodataframe_with_squares(co2sums, 'co2(t)/a', minx, miny, country_name)
+    sqdf_opts = create_geodataframe_with_squares(co2opts, 'opt_co2(t)/a', minx, miny, country_name)
+    sqdf_diff = create_geodataframe_with_squares(diffs, 'diff', minx, miny, country_name)
     return (sqdf_co2, sqdf_opts, sqdf_diff)
 
 

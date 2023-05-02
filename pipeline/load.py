@@ -24,12 +24,12 @@ big_countries_in_europe = ['france', 'germany', 'great-britain', 'italy', 'nethe
 
 #Downloads the osm.pbf-files from the geofabrik-mirror into the same folder where its running
 #Parameter, list: countries (can be None, then this implementation will use the list for Europe)
-def download_osm_files(countries=None):
+def download_osm_files(folder=None,countries=None):
     if countries is None:
         countries = europe
     for country in countries:
         print("Now downloading: "+ country)
-        download_country(country)
+        download_country(country, folder)
 
 #Uses osmium in a docker container to filter out only building data from osm-files
 #Parameter, boolean: delete_unfiltered (default fault, that is, will not delete after filtering)
@@ -98,8 +98,8 @@ def split_osm_files(filtered=True, countries=None, delete_unfiltered=True):
     for country in countries:
         if filtered:
             country = 'filtered-' + country
-        #parameters = get_split_parameters(country)
-        #split_country(country, parameters)
+        parameters = get_split_parameters(country)
+        split_country(country, parameters)
         if delete_unfiltered:
             print(f'Deleting unsplit file: {country}...')
             bashCommand = f'rm {country+"-latest.osm.pbf"}'
@@ -125,8 +125,8 @@ def get_split_parameters(country):
 
 def main():
     #download_country('albania')
-    #download_osm_files()
-    #filter_out_buildings(True)
+    download_osm_files()
+    filter_out_buildings(True)
     split_osm_files()
 
 if __name__ == "__main__":

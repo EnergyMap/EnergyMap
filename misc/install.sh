@@ -7,3 +7,7 @@ pip install osmnx
 pip install numpy
 pip install scikit-learn
 pip install jupyterlab
+pip install python-dotenv
+pip install sqlalchemy
+pip install geoalchemy2
+pip install psycopg2
