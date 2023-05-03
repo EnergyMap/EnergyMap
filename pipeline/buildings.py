@@ -66,9 +66,9 @@ def create_geodataframe(file):
         else:
             geodf = pd.concat([geodf, gdfx])
         i += 200000
-        
-    geodf.loc[geodf['building:levels'].str.contains('[A-Za-z]', na=False)] = None
-    geodf.loc[geodf['building:levels'].str.contains('[;,.-`]', na=False)] = None
+    geodf.loc[geodf['building:levels'].str.contains('[^0-9]', na=False)] = None
+    #geodf.loc[geodf['building:levels'].str.contains('[A-Za-z]', na=False)] = None
+    #geodf.loc[geodf['building:levels'].str.contains('[;,.-`й]', na=False)] = None
     geodf.loc[geodf['building:levels'] == "0"] = None
     geodf["building:levels"] = geodf["building:levels"].astype("float")
     

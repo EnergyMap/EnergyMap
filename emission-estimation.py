@@ -3,7 +3,7 @@ import pandas as pd
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
 from pipeline.buildings import create_geodataframe
-from pipeline.level_estimation import estimate_levels_with_knn
+from pipeline.level_estimation import estimate_levels_with_knn, estimate_levels_with_randomforest
 from pipeline.climate_zones import get_climate_zones
 from pipeline.energy_demand import get_energy_demand
 from pipeline.co2_emissions import get_co2_emissions
@@ -13,7 +13,8 @@ def create_emission_data(file):
     gdf = create_geodataframe(file)
     if len(gdf.index) == 0:
         return None
-    gdf = estimate_levels_with_knn(gdf)
+    #gdf = estimate_levels_with_knn(gdf)
+    gdf = estimate_levels_with_randomforest(gdf)
     zones = get_climate_zones()
     gdf = get_energy_demand(gdf, zones)
     co2_rates = pd.read_csv('pipeline/co2rates.csv', index_col=0)
@@ -66,7 +67,7 @@ def insert_in_database(connection, table, gdf):
 
 def main():
     #print(list_files())
-    run_pipeline('data')
+    run_pipeline('small_test')
 
 if __name__ == "__main__":
     main()

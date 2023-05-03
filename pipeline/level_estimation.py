@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import random
 from sklearn.ensemble import RandomForestRegressor
 
-def predict_levels_with_randomforest(geodf):
-    geodf['predict'] = 0
+def estimate_levels_with_randomforest(geodf):
+    print('Predicting levels, please wait...')
+    geodf['predicted'] = 0
     crs = geodf.crs
     geodf["geometry"] = geodf["geometry"].to_crs("EPSG:3857")
-    geodf.loc[geodf['building:levels'].isna(),'predict'] = 1
+    geodf.loc[geodf['building:levels'].isna(),'predicted'] = 1
     areas = geodf["geometry"].area
     locations = geodf["geometry"].centroid
     levels = geodf["building:levels"]
@@ -21,10 +22,12 @@ def predict_levels_with_randomforest(geodf):
     #print(geodf.loc[geodf['predict']==1,'building:levels'].shape)
     x = train_data[:, :3]
     y = train_data[:, 3]
-    rfr = RandomForestRegressor(criterion='absolute_error')
+    rfr = RandomForestRegressor(criterion='absolute_error', n_jobs=-1)
+    print('Fitting model to data, please wait...')
     pred = rfr.fit(x, y).predict(predict_data)
-    geodf.loc[geodf['predict']==1,'building:levels'] = np.rint(pred)
-    geodf["geometry"] = geodf["geometry"].to_crs(crs)
+    geodf['levels'] = geodf['building:levels']
+    geodf.loc[geodf['predicted']==1,'levels'] = np.rint(pred)
+    geodf["geometry"].to_crs(crs)
     return geodf
 
 def predict_levels(with_levels_info, without_levels_info, k_neighbours):
