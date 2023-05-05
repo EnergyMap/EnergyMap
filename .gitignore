@@ -4,3 +4,6 @@ data/
 problems/
 already_done/
 small_test/
+__pycache__/
+pipeline/__pycache__
+logs.txt

@@ -2,7 +2,7 @@ import osmium
 import shapely.wkb as wkblib
 import geopandas
 import pandas as pd
-import re
+import re, gc
 
 #An osmium-based class that reads the osm-file and appends all buildings to an array 
 class BuildingHandler(osmium.SimpleHandler):
@@ -78,6 +78,8 @@ def create_geodataframe(file):
     #finding the country from the filename and adding to the dataframe
     geodf['country'] = extract_country_name(file)
     geodf.reset_index(drop=True, inplace=True)
+    del buildinghandler
+    gc.collect()
     return geodf
 
 def main():

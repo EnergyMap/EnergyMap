@@ -1,10 +1,11 @@
+import random, gc
 import geopandas
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
-import random
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
 
 def estimate_levels_with_randomforest(geodf):
     print('Predicting levels, please wait...')
@@ -22,12 +23,19 @@ def estimate_levels_with_randomforest(geodf):
     #print(geodf.loc[geodf['predict']==1,'building:levels'].shape)
     x = train_data[:, :3]
     y = train_data[:, 3]
-    rfr = RandomForestRegressor(criterion='absolute_error', n_jobs=-1)
+    train_size = min(max(30000,round(len(x)/20)), len(x)-10)
+    print('Using training data length ' + str(train_size))
+    X_train, _, y_train, _ = train_test_split(
+        x, y, train_size=train_size, random_state=42, shuffle=True
+    )
+    rfr = RandomForestRegressor(n_estimators=30, n_jobs=-1)
     print('Fitting model to data, please wait...')
-    pred = rfr.fit(x, y).predict(predict_data)
+    pred = rfr.fit(X_train, y_train).predict(predict_data)
     geodf['levels'] = geodf['building:levels']
     geodf.loc[geodf['predicted']==1,'levels'] = np.rint(pred)
     geodf["geometry"].to_crs(crs)
+    del data, train_data, predict_data, X_train, y_train, pred
+    gc.collect()
     return geodf
 
 def predict_levels(with_levels_info, without_levels_info, k_neighbours):

@@ -1,3 +1,4 @@
+import gc
 import numpy as np
 import geopandas
 from shapely.geometry import Polygon
@@ -48,6 +49,13 @@ def create_square_tiles(geodf):
     sqdf_co2 = create_geodataframe_with_squares(co2sums, 'co2(t)/a', minx, miny, country_name)
     sqdf_opts = create_geodataframe_with_squares(co2opts, 'opt_co2(t)/a', minx, miny, country_name)
     sqdf_diff = create_geodataframe_with_squares(diffs, 'diff', minx, miny, country_name)
+    #this happens when the country is the one used as a baseline for optimal co2-rate, the diff-frame will be empty:
+    if sqdf_diff.shape[0] == 0 and sqdf_co2.shape[0] > 0:
+        sqdf_diff = sqdf_co2.copy()
+        sqdf_diff['diff'] = 0.0
+        sqdf_diff = sqdf_diff.drop('co2(t)/a', axis=1)
+    del co2sums, co2opts, diffs
+    gc.collect()
     return (sqdf_co2, sqdf_opts, sqdf_diff)
 
 

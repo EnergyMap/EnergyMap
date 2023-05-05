@@ -45,13 +45,10 @@ def process_file(file):
     insert_in_database(db_conn, 'squares_diff', sqdf_diff)
     print(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.')
     f = open("logs.txt", "a")
-    f.write(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.')
+    f.write(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.\n')
     f.close()
     #probably unnecessary, but since memory has been a problem in this pipeline:
-    del gdf
-    del sqdf_co2
-    del sqdf_opts
-    del sqdf_diff
+    del emission_data, gdf, sqdf_co2, sqdf_opts, sqdf_diff
     gc.collect()
     
 def run_pipeline(folder='OSM_data'):
@@ -67,7 +64,7 @@ def insert_in_database(connection, table, gdf):
 
 def main():
     #print(list_files())
-    run_pipeline('small_test')
+    run_pipeline('data')
 
 if __name__ == "__main__":
     main()
