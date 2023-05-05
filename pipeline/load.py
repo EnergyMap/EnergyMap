@@ -5,7 +5,7 @@ import osmium as o
 #Parameter, string: country
 #NOTE! Only runs if you have wget on your path, and only on Linux/bash
 def download_country(country, folder):
-    bashCommand = f'wget http://download.geofabrik.de/europe/{country}-latest.osm.pbf -P {destination}'
+    bashCommand = f'wget http://download.geofabrik.de/europe/{country}-latest.osm.pbf -P {folder}'
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
 
@@ -31,9 +31,8 @@ def download_osm_files(folder,countries):
 #Parameter, boolean: delete_unfiltered (default fault, that is, will not delete after filtering)
 #Parameter, list: files (if none will process all osm.pbf-files in the same folder)
 #Parameter, string: folder (if none will use current working directory)
-def filter_out_buildings(files, folder, delete_unfiltered=False):
-    if files is None:
-        files = [x for x in os.listdir(folder) if 'osm.pbf' in x and 'filtered' not in x]
+def filter_out_buildings(folder, delete_unfiltered=False):
+    files = [x for x in os.listdir(folder) if 'osm.pbf' in x and 'filtered' not in x]
     for file in files:
         print(f'Now filtering buildings from file: {file}...')
         bashCommand = f'docker run -w /wkd -v {folder}:/wkd stefda/osmium-tool '
@@ -73,11 +72,6 @@ def split_country(file, folder, parameters):
             output, error = process.communicate()
             if error:
                 print(error)
-                
-def delete_unsplit_files(country, dir=None):
-    if dir is None:
-        dir = os.getcwd()
-    
     
             
 #Splits the osm.pbf-files in Europe that are too big for the pipeline (atleast with <=32GB RAM).
@@ -88,13 +82,13 @@ def split_osm_files(folder, delete_unsplit=True):
     for file in files:
         parameters = get_split_parameters(file, folder)
         split_country(file, folder, parameters)
-    #    if delete_unfiltered:
-    #        print(f'Deleting unsplit file: {country}...')
-    #        bashCommand = f'rm {country+"-latest.osm.pbf"}'
-    #        process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-    #        output, error = process.communicate()
-    #        if error:
-    #            print(error)
+        if delete_unsplit:
+            print(f'Deleting original file: {file}...')
+            bashCommand = f'rm {os.path.join(folder,file)}'
+            process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
+            if error:
+                print(error)
         
 #Checks the bounding box coordinates for a osm.pbf-file and returns a tuple with (lon1, lat1, lon2, lat2, width, height),
 #where 'width' and 'height' are suitable specs for the smaller files to be split out of the bigger one.
@@ -111,12 +105,15 @@ def get_split_parameters(file, folder):
     
 
 def main():
+    if len(sys.argv) > 2:
+        print('Please use this script with only one argument: work-folder')
+        return
     if len(sys.argv) > 1:
         folder = os.path.join(os.getcwd(),sys.argv[1])
     else:
         folder = os.getcwd()
-    #download_osm_files(folder, europe)
-    #filter_out_buildings(delete_unfiltered=True, folder=folder)
+    download_osm_files(folder, europe)
+    filter_out_buildings(delete_unfiltered=True, folder=folder)
     split_osm_files(folder)
 
 if __name__ == "__main__":
