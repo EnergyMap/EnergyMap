@@ -31,7 +31,7 @@ class BuildingHandler(osmium.SimpleHandler):
             
 #function during workflow to test logic, default for test
 def extract_country_name(file='filtered-bosnia-herzegovina-latest'):
-    regex = '-[0-3]{2}'
+    regex = 'part[0-3]{2}'
     country = file.split('-latest')[0]
     if 'filtered-' in file:
         country = country.split('tered-')[1]
@@ -49,23 +49,26 @@ def create_geodataframe(file):
     print(f'Loading osm-data from file {file}, this will take a while...')
     buildinghandler = BuildingHandler()
     buildinghandler.apply_file(file, locations=True)
-
+    if len(buildinghandler.buildings) == 0:
+        return pd.DataFrame()
     #This loop is needed beause of geopandas.GeoDataFrame otherwise using too much RAM at once
     #This loop should work with at least 16GB RAM
     print(f'Creating geodataframe from the data from {file}, this will take a while...')
-    i = 200000
-    while i-200000 < len(buildinghandler.buildings):
-        dfx = pd.DataFrame(buildinghandler.buildings[(i-200000):min([i, len(buildinghandler.buildings)-1])])
-        gdfx = geopandas.GeoDataFrame(dfx, geometry='geometry')
-        gdfx = gdfx.set_crs("EPSG:4326")
-        #gdfx = ox.project_gdf(gdfx)
-        #gdfx = gdfx.dropna(subset=['building:levels'])
-        gdfx = gdfx[['w_id', 'geometry', 'building:levels']]
-        if i < 200001:
-            geodf = gdfx
-        else:
-            geodf = pd.concat([geodf, gdfx])
-        i += 200000
+    #If the data didn't contain any building:levels, this will throw error, and then return an empty dataframe
+    try:
+        i = 200000
+        while i-200000 < len(buildinghandler.buildings):
+            dfx = pd.DataFrame(buildinghandler.buildings[(i-200000):min([i, len(buildinghandler.buildings)-1])])
+            gdfx = geopandas.GeoDataFrame(dfx, geometry='geometry')
+            gdfx = gdfx.set_crs("EPSG:4326")
+            gdfx = gdfx[['w_id', 'geometry', 'building:levels']]
+            if i < 200001:
+                geodf = gdfx
+            else:
+                geodf = pd.concat([geodf, gdfx])
+            i += 200000
+    except:
+        return pd.DataFrame()
     geodf.loc[geodf['building:levels'].str.contains('[^0-9]', na=False)] = None
     #geodf.loc[geodf['building:levels'].str.contains('[A-Za-z]', na=False)] = None
     #geodf.loc[geodf['building:levels'].str.contains('[;,.-`й]', na=False)] = None

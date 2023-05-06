@@ -1,4 +1,4 @@
-import os, psutil, gc
+import os, psutil, gc, sys
 import pandas as pd
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
@@ -11,9 +11,8 @@ from pipeline.square_tiles import create_square_tiles
 
 def create_emission_data(file):
     gdf = create_geodataframe(file)
-    if len(gdf.index) == 0:
+    if len(gdf) == 0:
         return None
-    #gdf = estimate_levels_with_knn(gdf)
     gdf = estimate_levels_with_randomforest(gdf)
     zones = get_climate_zones()
     gdf = get_energy_demand(gdf, zones)
@@ -23,7 +22,7 @@ def create_emission_data(file):
     return (gdf, sqdf_co2, sqdf_opts, sqdf_diff)
 
 def list_files(folder):
-    return [x for x in os.listdir(folder) if '.osm.pbf' in x]
+    return [x for x in os.listdir(folder) if '.osm.pbf' in x and '-ready' not in x]
 
 def create_connection():
     cf = dotenv_values(".env")
@@ -43,9 +42,9 @@ def process_file(file):
     insert_in_database(db_conn, 'squares_co2', sqdf_co2)
     insert_in_database(db_conn, 'squares_opt_co2', sqdf_opts)
     insert_in_database(db_conn, 'squares_diff', sqdf_diff)
-    print(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.')
+    print(f'Finished processing {file}.')
     f = open("logs.txt", "a")
-    f.write(f'Finished processing {gdf.loc[gdf.index[0], "country"]}.\n')
+    f.write(f'Finished processing {file}.\n')
     f.close()
     #probably unnecessary, but since memory has been a problem in this pipeline:
     del emission_data, gdf, sqdf_co2, sqdf_opts, sqdf_diff
@@ -54,8 +53,10 @@ def process_file(file):
 def run_pipeline(folder='OSM_data'):
     files = list_files(folder)
     for file in files:
+        print(file)
         print('Using memory before handling file '+str(psutil.virtual_memory().percent))
         process_file(os.path.join(folder,file))
+        os.rename(os.path.join(folder,file), os.path.join(folder,file+'-ready'))
         print('Using memory after handling file '+str(psutil.virtual_memory().percent))
 
 def insert_in_database(connection, table, gdf):
@@ -63,8 +64,14 @@ def insert_in_database(connection, table, gdf):
     gdf.to_postgis(table, connection, if_exists="append") 
 
 def main():
-    #print(list_files())
-    run_pipeline('data')
+    if len(sys.argv) > 2:
+        print('Please use this script with only one argument: work-folder')
+        return
+    if len(sys.argv) > 1:
+        folder = os.path.join(os.getcwd(),sys.argv[1])
+    else:
+        folder = os.getcwd()
+    run_pipeline(folder)
 
 if __name__ == "__main__":
     main()
