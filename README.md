@@ -1,8 +1,28 @@
 # EnergyMap
 
-Mapping co2-emissions of buildings all over the world. The notebook "pipelinefinal" in the root folder displays the pipeline for one file from OpenStreetMap.  
-The file pipeline/load.py contains the logic for downloading and processing (filtering out buildings, splitting to suitable size files) an updated extract of all European countries from Geofabrik. You will need Docker on the path to use load.py, otherwise you need to download manually.  
-You will need an .env-file that contains the url-information for your database, see the last cells of "pipelinefinal" for more details.
+Mapping co2-emissions of buildings all over the world. This application requires a Linux environment with bash in order to function. The load_data-function requires Docker on the PATH.  
+
+For downloading data (assuming you run python with the command 'python3'):
+
+```
+python3 load_data.py [folder where to save the data]
+```
+To run pipeline, i.e., process the data and import it to your postgis database:
+```
+python3 run_pipeline.py [the name of python in your command line, e.g., 'python3'] [folder where the data resides]
+```
+This python-file uses subprocesses, and therefore needs the name of python in your command line in order to run properly.  
+If you want to follow how the pipeline advances on a more detailed level than the printed log, you can check the file "log.txt" that will be written to from the subprocesses.
+
+## .env-file
+In order to access your Postgis-database, you will need to add an .env-file with the following variables:
+
+USER=[databaseuser]  
+PW=[password]  
+DB=[name of database]  
+PORT=[database port]  
+URL=[database url]  
+TABLE=[database table]
 
 ## Note on Geopandas issue
 
