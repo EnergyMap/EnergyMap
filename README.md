@@ -12,12 +12,13 @@ To run pipeline, i.e., process the data and import it to your postgis database:
 python3 run_pipeline.py [the name of python in your command line, e.g., 'python3'] [folder where the data resides]
 ```
 This python-file uses subprocesses, and therefore needs the name of python in your command line in order to run properly.  
+  
 If you want to follow how the pipeline advances on a more detailed level than the printed log, you can check the file "log.txt" that will be written to from the subprocesses.
 
 ## .env-file
 In order to access your Postgis-database, you will need to add an .env-file with the following variables:
 
-USER=[databaseuser]  
+USER=[database user]  
 PW=[password]  
 DB=[name of database]  
 PORT=[database port]  
