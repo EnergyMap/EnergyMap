@@ -39,10 +39,10 @@ def process_file(file):
         log('No buildings in ' + file)
         return
     db_conn = create_connection()
-    #insert_in_database(db_conn, 'buildings', gdf)
-    #insert_in_database(db_conn, 'squares_co2', sqdf_co2)
-    #insert_in_database(db_conn, 'squares_opt_co2', sqdf_opts)
-    #insert_in_database(db_conn, 'squares_diff', sqdf_diff)
+    insert_in_database(db_conn, 'buildings', gdf)
+    insert_in_database(db_conn, 'squares_co2', sqdf_co2)
+    insert_in_database(db_conn, 'squares_opt_co2', sqdf_opts)
+    insert_in_database(db_conn, 'squares_diff', sqdf_diff)
     log(f'Finished processing {file}.')
     #probably unnecessary, but since memory has been a problem in this pipeline:
     del emission_data, gdf, sqdf_co2, sqdf_opts, sqdf_diff
