@@ -23,7 +23,10 @@ PW=[password]
 DB=[name of database]  
 PORT=[database port]  
 URL=[database url]  
-TABLE=[database table]
+BUILDING_TABLE=[database table for building data]
+SQUARES_CO2_TABLE=[database table for 1 km square sums]  
+SQUARES_CO2_OPT_TABLE=[database table for 1 km square sums optimal co2 emission]  
+SQUARES_DIFF_TABLE=[database table for 1 km square sums difference between current and optimal]
 
 ## Note on Geopandas issue
 
