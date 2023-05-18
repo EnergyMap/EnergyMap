@@ -28,6 +28,10 @@ SQUARES_CO2_TABLE=[database table for 1 km square sums]
 SQUARES_CO2_OPT_TABLE=[database table for 1 km square sums optimal co2 emission]  
 SQUARES_DIFF_TABLE=[database table for 1 km square sums difference between current and optimal]
 
+## Note on system requirements
+
+PyOsmium and Geopandas gather quite a lot of artefacts in memory, and therefore this pipeline has not been run successfully with less than 32GB of RAM memory. Also note, that the Random Forest Regression algorithm might demand quite a lot of execution time, and we strongly recommend executing the pipeline on a device with a multitude of cores.
+
 ## Note on Geopandas issue
 
 Please check your Geopandas version, it might have an issue in the method to insert data to postgis. You can find the relevant file at /usr/local/lib/python3.10/dist-packages/geopandas/io/sql.py , please check that the "text" method is being imported from sqlalchemy and that at around line 400 the code "SELECT Find SRID( etc" is wrapped in the text() method.  
