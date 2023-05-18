@@ -18,7 +18,7 @@ If you want to follow how the pipeline advances on a more detailed level than th
 ## .env-file
 In order to access your Postgis-database, you will need to add an .env-file with the following variables:
 
-USER=[databaseuser]  
+USER=[database user]  
 PW=[password]  
 DB=[name of database]  
 PORT=[database port]  
