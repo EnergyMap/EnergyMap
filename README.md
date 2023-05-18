@@ -1,6 +1,6 @@
 # EnergyMap
 
-Mapping co2-emissions of buildings all over the world. This application requires a Linux environment with bash in order to function. The load_data-function requires Docker on the PATH.  
+Mapping co2-emissions of buildings all over the world. This application requires a Linux environment with bash in order to function (because it relies on using subprocesses). The load_data-function requires Docker on the PATH.  
 
 For downloading data (assuming you run python with the command 'python3'):
 
