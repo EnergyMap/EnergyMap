@@ -1,8 +1,10 @@
 import osmium
+import shapely
 import shapely.wkb as wkblib
 import geopandas
 import pandas as pd
 import re, gc
+from log import log
 
 #An osmium-based class that reads the osm-file and appends all buildings to an array 
 class BuildingHandler(osmium.SimpleHandler):
@@ -46,19 +48,20 @@ def extract_country_name(file='filtered-bosnia-herzegovina-latest'):
 #Builds a geopandas-dataframe from an osm-file with the help of the osmium-based buildinghandler-class
 #Parameter, string: osm-file location
 def create_geodataframe(file):
-    print(f'Loading osm-data from file {file}, this will take a while...')
+    log(f'Loading osm-data from file {file}, this will take a while...')
     buildinghandler = BuildingHandler()
     buildinghandler.apply_file(file, locations=True)
     if len(buildinghandler.buildings) == 0:
         return pd.DataFrame()
     #This loop is needed beause of geopandas.GeoDataFrame otherwise using too much RAM at once
     #This loop should work with at least 16GB RAM
-    print(f'Creating geodataframe from the data from {file}, this will take a while...')
+    log(f'Creating geodataframe from the data from {file}, this will take a while...')
     #If the data didn't contain any building:levels, this will throw error, and then return an empty dataframe
     try:
         i = 200000
         while i-200000 < len(buildinghandler.buildings):
             dfx = pd.DataFrame(buildinghandler.buildings[(i-200000):min([i, len(buildinghandler.buildings)-1])])
+            dfx = dfx.loc[dfx['geometry'].apply(lambda g: isinstance(g, shapely.geometry.multipolygon.MultiPolygon))]
             gdfx = geopandas.GeoDataFrame(dfx, geometry='geometry')
             gdfx = gdfx.set_crs("EPSG:4326")
             gdfx = gdfx[['w_id', 'geometry', 'building:levels']]
@@ -67,7 +70,8 @@ def create_geodataframe(file):
             else:
                 geodf = pd.concat([geodf, gdfx])
             i += 200000
-    except:
+    except Exception as e:
+        log(f'There was an unexpected error in handling the file {file}: \n {e}')
         return pd.DataFrame()
     geodf.loc[geodf['building:levels'].str.contains('[^0-9]', na=False)] = None
     #geodf.loc[geodf['building:levels'].str.contains('[A-Za-z]', na=False)] = None
@@ -86,10 +90,6 @@ def create_geodataframe(file):
     return geodf
 
 def main():
-    #result = build_geodf('albania-latest.osm.pbf')
-    #print(result.head())
-    #print(result.shape)
-    #split_big_countries()
     print(extract_country_name())
 
 if __name__ == "__main__":

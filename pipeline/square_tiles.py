@@ -2,6 +2,7 @@ import gc
 import numpy as np
 import geopandas
 from shapely.geometry import Polygon
+from log import log
 
 def create_2d_array(minx, miny, maxx, maxy):    
     #creating a 2d array for all square tiles to cover the whole country (adding one for surity)
@@ -30,7 +31,7 @@ def create_geodataframe_with_squares(two_d_arr, column_name, minx, miny, country
     
 
 def create_square_tiles(geodf):
-    print(f'Creating square-tiles of sum emission levels for {geodf.loc[geodf.index[0], "country"]}, this will take a while...')
+    log(f'Creating square-tiles of sum emission levels for {geodf.loc[geodf.index[0], "country"]}, this will take a while...')
     meter_geodf = geodf.to_crs("EPSG:3857")
     minx, miny, maxx, maxy = meter_geodf.total_bounds
     co2sums = create_2d_array(minx, miny, maxx, maxy)

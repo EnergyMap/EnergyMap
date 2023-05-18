@@ -6,8 +6,10 @@ from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
+from log import log
 
 def estimate_levels_with_randomforest(geodf):
+    log('Predicting levels, please wait...')
     print('Predicting levels, please wait...')
     geodf['predicted'] = 0
     crs = geodf.crs
@@ -19,8 +21,6 @@ def estimate_levels_with_randomforest(geodf):
     data = np.array([areas, locations.x, locations.y, levels]).T
     train_data = data[np.where(~np.isnan(data[:,3]))]
     predict_data = data[np.where(np.isnan(data[:,3]))][:, :3]
-    #print(len(predict_data))
-    #print(geodf.loc[geodf['predict']==1,'building:levels'].shape)
     x = train_data[:, :3]
     y = train_data[:, 3]
     train_size = min(max(30000,round(len(x)/20)), len(x)-10)
@@ -28,9 +28,10 @@ def estimate_levels_with_randomforest(geodf):
     if train_size < 100:
         geodf['levels'] = geodf['building:levels']
         geodf.loc[geodf['predicted']==1,'levels'] = int(geodf.loc[geodf['predicted']==0,'building:levels'].mean())
-        print("Data size too small, using average level...")
+
+        log("Data size too small, using average level...")
     else:
-        print('Using training data length ' + str(train_size))
+        log('Using training data length ' + str(train_size))
         X_train, _, y_train, _ = train_test_split(
             x, y, train_size=train_size, random_state=42, shuffle=True
         )
@@ -54,7 +55,7 @@ def predict_levels(with_levels_info, without_levels_info, k_neighbours):
     return means
 
 def estimate_levels_with_knn(geodf, k_neighbours=3):
-    print(f'Estimating levels for country {geodf.loc[geodf.index[0], "country"]}, this will take a while...')
+    log(f'Estimating levels for country {geodf.loc[geodf.index[0], "country"]}, this will take a while...')
     crs = geodf.crs
     geodf["geometry"] = geodf["geometry"].to_crs("EPSG:3857") # to meters instead of lat, lon degees
     

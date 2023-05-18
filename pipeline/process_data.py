@@ -2,12 +2,13 @@ import os, psutil, gc, sys
 import pandas as pd
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
-from pipeline.buildings import create_geodataframe
-from pipeline.level_estimation import estimate_levels_with_knn, estimate_levels_with_randomforest
-from pipeline.climate_zones import get_climate_zones
-from pipeline.energy_demand import get_energy_demand
-from pipeline.co2_emissions import get_co2_emissions
-from pipeline.square_tiles import create_square_tiles
+from buildings import create_geodataframe
+from level_estimation import estimate_levels_with_knn, estimate_levels_with_randomforest
+from climate_zones import get_climate_zones
+from energy_demand import get_energy_demand
+from co2_emissions import get_co2_emissions
+from square_tiles import create_square_tiles
+from log import log
 
 def create_emission_data(file):
     gdf = create_geodataframe(file)
@@ -35,17 +36,14 @@ def process_file(file):
     if emission_data:
         gdf, sqdf_co2, sqdf_opts, sqdf_diff = emission_data
     else:
-        print('No buildings in ' + file)
+        log('No buildings in ' + file)
         return
     db_conn = create_connection()
-    insert_in_database(db_conn, 'buildings', gdf)
-    insert_in_database(db_conn, 'squares_co2', sqdf_co2)
-    insert_in_database(db_conn, 'squares_opt_co2', sqdf_opts)
-    insert_in_database(db_conn, 'squares_diff', sqdf_diff)
-    print(f'Finished processing {file}.')
-    f = open("logs.txt", "a")
-    f.write(f'Finished processing {file}.\n')
-    f.close()
+    #insert_in_database(db_conn, 'buildings', gdf)
+    #insert_in_database(db_conn, 'squares_co2', sqdf_co2)
+    #insert_in_database(db_conn, 'squares_opt_co2', sqdf_opts)
+    #insert_in_database(db_conn, 'squares_diff', sqdf_diff)
+    log(f'Finished processing {file}.')
     #probably unnecessary, but since memory has been a problem in this pipeline:
     del emission_data, gdf, sqdf_co2, sqdf_opts, sqdf_diff
     gc.collect()
@@ -53,14 +51,14 @@ def process_file(file):
 def run_pipeline(folder='OSM_data'):
     files = list_files(folder)
     for file in files:
-        print(file)
-        print('Using memory before handling file '+str(psutil.virtual_memory().percent))
+        log(file)
+        log('Using memory before handling file '+str(psutil.virtual_memory().percent))
         process_file(os.path.join(folder,file))
         os.rename(os.path.join(folder,file), os.path.join(folder,file+'-ready'))
-        print('Using memory after handling file '+str(psutil.virtual_memory().percent))
+        log('Using memory after handling file '+str(psutil.virtual_memory().percent))
 
 def insert_in_database(connection, table, gdf):
-    print(f'Inserting into db-table "{table}" for {gdf.loc[gdf.index[0], "country"]}, please wait...')
+    log(f'Inserting into db-table "{table}" for {gdf.loc[gdf.index[0], "country"]}, please wait...')
     gdf.to_postgis(table, connection, if_exists="append") 
 
 def main():
