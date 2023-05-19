@@ -28,6 +28,10 @@ SQUARES_CO2_TABLE=[database table for 1 km square sums]
 SQUARES_CO2_OPT_TABLE=[database table for 1 km square sums optimal co2 emission]  
 SQUARES_DIFF_TABLE=[database table for 1 km square sums difference between current and optimal]
 
+## Dependencies
+
+Although there is a requirements.txt-file, we highly recommend to use the file misc/install.sh as a list of which libraries will be needed. Using the .txt-file seems to cause unexplained errors with inconsistent dependencies.
+
 ## Note on system requirements
 
 PyOsmium and Geopandas gather quite a lot of artefacts in memory, and therefore this pipeline has not been run successfully with less than 32GB of RAM memory. Also note, that the Random Forest Regression algorithm might demand quite a lot of execution time, and we strongly recommend executing the pipeline on a device with a multitude of cores.
